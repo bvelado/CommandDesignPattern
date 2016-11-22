@@ -19,23 +19,14 @@ public class CommandStream : MonoBehaviour {
     {
         get
         {
-            if (instance == null)
-            {
-                var go = new GameObject("Command Stream");
-                instance = go.AddComponent<CommandStream>();
-            }
             return instance;
         }
     }
 
-    private Stack<ICommand> _undoStream;
-    [SerializeField]
-    private int _maxLength;
+    protected CompensationConversation Conversation;
 
-    private Stack<ICommand> _redoStream;
-    
-    public event Action<bool> CanRedo;
-    public event Action<bool> CanUndo;
+    public Action<bool> CanUndo;
+    public Action<bool> CanRedo;
 
     [SerializeField]
     private List<CommandViewByCommandType> commandViews;
@@ -50,55 +41,41 @@ public class CommandStream : MonoBehaviour {
         else
             instance = this;
 
+        Conversation = new CompensationConversation();
+
         commandViewLookup = new Dictionary<ICommand, GameObject>();
+
+        Conversation.CommandExecuted += AddCommandView;
+        Conversation.CommandRedone += AddCommandView;
+        Conversation.CommandUndone += RemoveCommandView;
+
+        Conversation.CanUndo += Conversation_CanUndoHandler;
+        Conversation.CanRedo += Conversation_CanRedoHandler;
+    }
+    
+    void OnDestroy()
+    {
+        Conversation.CommandExecuted -= AddCommandView;
+        Conversation.CommandRedone -= AddCommandView;
+        Conversation.CommandUndone -= RemoveCommandView;
+
+        Conversation.CanUndo -= Conversation_CanUndoHandler;
+        Conversation.CanRedo -= Conversation_CanRedoHandler;
     }
 
-    void Start()
+    public void Push(ICompensableCommand command)
     {
-        _undoStream = new Stack<ICommand>();
-        _redoStream = new Stack<ICommand>();
-    }
-
-    public void Push(ICommand command)
-    {
-        if (_undoStream.Count > _maxLength)
-            _undoStream.Pop();
-        
-        command.execute();
-        AddCommandView(command);
-        _undoStream.Push(command);
-
-        CheckStreams();
+        Conversation.exec(command);
     }
 
     public void Undo()
     {
-        if(_undoStream.Count > 0)
-        {
-            RemoveCommandView(_undoStream.Peek());
-            _redoStream.Push(_undoStream.Peek());
-            _undoStream.Pop().undo();
-        }
-        CheckStreams();
+        Conversation.undo();
     }
 
     public void Redo()
     {
-        if (_redoStream.Count > 0)
-        {
-            AddCommandView(_redoStream.Peek());
-            _undoStream.Push(_redoStream.Peek());
-            _redoStream.Pop().execute();
-        }
-        CheckStreams();
-    }
-
-    void CheckStreams()
-    {
-        if(CanUndo!=null)
-            CanUndo(_undoStream.Count > 0);
-        if(CanRedo!=null)
-            CanRedo(_redoStream.Count > 0);
+        Conversation.redo();
     }
 
     void AddCommandView(ICommand command)
@@ -124,6 +101,22 @@ public class CommandStream : MonoBehaviour {
         {
             Destroy(commandViewLookup[command]);
             commandViewLookup.Remove(command);
+        }
+    }
+
+    void Conversation_CanUndoHandler(bool canUndo)
+    {
+        if(CanUndo != null)
+        {
+            CanUndo(canUndo);
+        }
+    }
+
+    void Conversation_CanRedoHandler(bool canRedo)
+    {
+        if (CanRedo != null)
+        {
+            CanRedo(canRedo);
         }
     }
 }

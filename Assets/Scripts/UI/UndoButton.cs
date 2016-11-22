@@ -12,6 +12,17 @@ public class UndoButton : MonoBehaviour {
 
     void Start()
     {
-        CommandStream.Instance.CanUndo += (canUndo) => m_button.interactable = canUndo;
+        CommandStream.Instance.CanUndo += SetInteractable;
+    }
+
+    void OnDestroy()
+    {
+        if (CommandStream.Instance)
+            CommandStream.Instance.CanUndo -= SetInteractable;
+    }
+
+    void SetInteractable(bool interactable)
+    {
+        m_button.interactable = interactable;
     }
 }

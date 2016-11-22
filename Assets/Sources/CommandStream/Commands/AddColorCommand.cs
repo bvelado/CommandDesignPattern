@@ -2,7 +2,7 @@
 using System.Collections;
 using System;
 
-public class AddColorCommand : ICommand
+public class AddColorCommand : ICompensableCommand
 {
     public string Name { get { return "Add color"; } }
 
@@ -26,8 +26,8 @@ public class AddColorCommand : ICommand
         _gameObject.transform.SetSiblingIndex(_index);
         _gameObject.GetComponent<ColorView>().Fill(_color);
     }
-
-    public void undo()
+    
+    public void compensate()
     {
         GameObject.Destroy(_gameObject);
         _gameObject = null;

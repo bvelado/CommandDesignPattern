@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public class RemoveColorCommand : ICommand
+public class RemoveColorCommand : ICompensableCommand
 {
     public string Name { get { return "Remove color"; } }
 
@@ -26,7 +26,7 @@ public class RemoveColorCommand : ICommand
         _gameObject = null;
     }
 
-    public void undo()
+    public void compensate()
     {
         _gameObject = GameObject.Instantiate(Resources.Load("Prefabs/ColorView"), _container, false) as GameObject;
         _gameObject.GetComponent<ColorView>().Fill(_color);

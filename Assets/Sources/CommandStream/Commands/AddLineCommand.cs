@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI.Extensions;
 
-public class AddLineCommand : ICommand
+public class AddLineCommand : ICompensableCommand
 {
     public string Name { get { return "Add line"; } }
 
@@ -50,7 +50,7 @@ public class AddLineCommand : ICommand
         renderer.Points = _linePoints;
     }
 
-    public void undo()
+    public void compensate()
     {
         MonoBehaviour.Destroy(_gameObject);
     }

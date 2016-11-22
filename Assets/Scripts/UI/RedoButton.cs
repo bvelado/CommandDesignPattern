@@ -12,6 +12,17 @@ public class RedoButton : MonoBehaviour {
 
     void Start()
     {
-        CommandStream.Instance.CanRedo += (canRedo) => m_button.interactable = canRedo;
+        CommandStream.Instance.CanRedo += SetInteractable;
+    }
+
+    void OnDestroy()
+    {
+        if(CommandStream.Instance)
+            CommandStream.Instance.CanRedo -= SetInteractable;
+    }
+
+    void SetInteractable(bool interactable)
+    {
+        m_button.interactable = interactable;
     }
 }
